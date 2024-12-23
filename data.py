@@ -2,23 +2,13 @@ import pandas as pd
 import os
 
 class Data:
-    food = []
-    furnitare = []
-    tech = []
-    drugs = []
-    transport = []
-    flights = []
-    music = []
-    shopping = []
-    gas = []
-    others = []
-
     def __init__(self, file):
         self.df = pd.read_excel(f"finance_statements/{file}", usecols=[2, 3, 7, 11])
+        self.removeNanRows()
+        self.makeCategories()  # Categorize rows after data loading
 
-        
     def removeNanRows(self):
-        self.df = self.df.rename(columns={"Unnamed: 2" : "Currency", "Unnamed: 3" : "Price", "Unnamed: 7" : "Date", "Unnamed: 11" : "Description"}, errors="raise")
+        self.df = self.df.rename(columns={"Unnamed: 2": "Currency", "Unnamed: 3": "Price", "Unnamed: 7": "Date", "Unnamed: 11": "Description"}, errors="raise")
         NANRowIndexes = []
 
         for i in range(len(self.df)):
@@ -34,41 +24,14 @@ class Data:
 
         self.df = self.df.drop(NANRowIndexes)
 
-        return self.df
-
-
-# REINDEX EACH ROW START = 0, END = len(df)
-
-    def reindex(self, df):
-        j = 0
-        for i, row in df.iterrows():
-            df = df.rename(index={i : j})
-            j += 1
-
-        # CHECK IF EACH TRANSACTION IS IN BGN
-
-        # for i in range(len(df)):
-        #     currency = df.at[i, "Currency"]
-
-        #     if str(currency) != "BGN":
-        #         print("Transaction not in lev")
-
-        return df
-
-
     def categoriseRows(self, listToCheck, value):
         for i in range(len(listToCheck)):
-
             if str(listToCheck[i]).lower() in str(value).lower():
                 return True
-
-        return False    
-
-
-# LISTS TO CHECK
+        return False 
 
     def makeCategories(self):
-        # CATEGORIES TO CHECK
+        # Categories to check
         superMarkets = ["edeka", "lidl", "kaufland", "nah und gut", "rewe", "aldi", "billa"]
         furnitareStores = ["ikea", "poco", "jysk"]
         techStores = ["media markt", "technopolis"]
@@ -79,14 +42,22 @@ class Data:
         shoppingStores = ["h&m", "c&a"]
         gasStations = ["omv", "shell"]
 
-        # END RESULTS
+        # Initialize category lists
+        self.food = []
+        self.furnitare = []
+        self.tech = []
+        self.drugs = []
+        self.transport = []
+        self.flights = []
+        self.music = []
+        self.shopping = []
+        self.gas = []
+        self.others = []
 
+        # Categorize each row based on description
         for i, row in self.df.iterrows():
-            row = row.to_list()
-            description = row[3]
-            row.insert(0, i)
-
-            data = row[0:4] # index, currency, price, date
+            description = row["Description"]
+            data = [row["Currency"], row["Price"], row["Date"], row["Description"]]
 
             if self.categoriseRows(superMarkets, description):
                 self.food.append(data)
@@ -116,39 +87,37 @@ class Data:
                 self.gas.append(data)    
             
             else:
-                self.others.append(data)    
+                self.others.append(data)
 
+    def getExpensesByMonth(self, months: list = None):
+        """ Returns total expenses per month (1-12). If months is None, all data will be considered. """
+        monthlyExpenses = {month: 0 for month in range(1, 13)}  # Initialize all months to 0
 
-    def sortByMonth(self, months: list ): # [start, end] or [] for all
-        # DROP NOT MATCHING MONTHS
-        df = self.df
+        # Iterate through rows and categorize expenses by month
+        for i, row in self.df.iterrows():
+            date = row["Date"]
+            try:
+                month = int(date.split(".")[1])  # Extract month from Date column (MM.YYYY format)
+                price = -1 * float(row["Price"])  # Assuming "Price" is a positive amount, expenses are negative
+                if months:
+                    if month in months:
+                        monthlyExpenses[month] += price
+                else:
+                    monthlyExpenses[month] += price
+            except Exception as e:
+                print(f"Error processing row {i}: {e}")
 
-        if months:
-            rowsNotInMonth = []
+        return monthlyExpenses
 
-            for i, j in enumerate(df.loc[:, "Date"]):
-                date = j.split(".")
-
-                if int(date[1]) < months[0] or int(date[1]) > months[1]:
-                    rowsNotInMonth.append(i)
-
-            df = df.drop(rowsNotInMonth)
-            df = self.reindex(df)
-
-        self.makeCategories()
-        return df # create a new object to store the month values so that the originals don't get messed up
-    
-
-    def printCategories(self, categoriesToPrint: list): # PRINT CERTAIN CATEGORIES
-        if len(categoriesToPrint) > 0: 
-            for j, category in enumerate(categoriesToPrint):
-                print(f"Category index {j}: ")
-                for i in category:
-                    print(i)
-    
-        else: # IF NO CATEGORIES PRINT ALL
+    def printCategories(self, categoriesToPrint: list = None):
+        """ Prints out the categories. If categoriesToPrint is specified, only those are printed. """
+        if categoriesToPrint:
+            for category in categoriesToPrint:
+                print(f"Category: {category}")
+                for entry in getattr(self, category):
+                    print(entry)
+        else:
+            # If no categories specified, print all data
             for i, row in self.df.iterrows():
-                row = row.to_list()
-                row.insert(0, i)
-                data = row[0:4]
-                print(data)    
+                print(row.to_list())
+
