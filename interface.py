@@ -1,7 +1,6 @@
 from data import Data
 from data_visualiser import Visualiser
 import customtkinter as tk
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import os
 
 class Interface:
@@ -22,7 +21,9 @@ class Interface:
         self.fileDropdown = tk.CTkComboBox(self.fileSelectionFrame, state="readonly")
         self.loadButton = tk.CTkButton(self.fileSelectionFrame, text="Load File", command=self.loadFile)
 
-        # Removed month range selection since it's no longer needed
+        self.sortByDropdown = tk.CTkComboBox(self.fileSelectionFrame, values=["Display expenses by month", "Expenses by Category"])
+        self.monthsDropdown = tk.CTkComboBox(self.fileSelectionFrame, values=self.getAvailableMonths())
+
         self.analyzeButton = tk.CTkButton(self.fileSelectionFrame, text="Analyze", command=self.analyze)
 
     def loadGUI(self):
@@ -30,6 +31,7 @@ class Interface:
         self.fileDropdown.pack(in_=self.fileSelectionFrame, pady=5)
         self.loadButton.pack(in_=self.fileSelectionFrame, pady=10)
 
+        self.optionDropdown.pack(in_=self.fileSelectionFrame, pady=10)
         self.analyzeButton.pack(in_=self.fileSelectionFrame, pady=10)
 
     def loadFile(self):
@@ -57,6 +59,9 @@ class Interface:
     def makeFrames(self):
         self.fileSelectionFrame = tk.CTkFrame(self.root)
         self.fileSelectionFrame.pack(fill="both", expand=True)
+
+        self.dataSelectionFrame = tk.CTkFrame(self.root)
+        self.dataSelectionFrame.pack(fill="both", expand=True)
 
     def getAvailableMonths(self):
         # Get the months available in the file
