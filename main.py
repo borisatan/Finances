@@ -9,3 +9,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+# TODO: Find a way to display data by month, and to display by category

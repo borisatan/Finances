@@ -5,7 +5,9 @@ class Data:
     def __init__(self, file):
         self.df = pd.read_excel(f"finance_statements/{file}", usecols=[2, 3, 7, 11])
         self.removeNanRows()
-        self.makeCategories()  # Categorize rows after data loading
+
+        self.makeCategories()
+
 
     def removeNanRows(self):
         self.df = self.df.rename(columns={"Unnamed: 2": "Currency", "Unnamed: 3": "Price", "Unnamed: 7": "Date", "Unnamed: 11": "Description"}, errors="raise")
@@ -23,6 +25,21 @@ class Data:
                 NANRowIndexes.append(i)   
 
         self.df = self.df.drop(NANRowIndexes)
+        return self.df
+    
+    def reindex(self, df):
+        j = 0
+        for i, row in df.iterrows():
+            df = df.rename(index={i : j})
+            j += 1
+
+        # CHECK IF EACH TRANSACTION IS IN BGN
+        # for i in range(len(df)):
+        #     currency = df.at[i, "Currency"]
+        #     if str(currency) != "BGN":
+        #         print("Transaction not in lev")
+        return df
+
 
     def categoriseRows(self, listToCheck, value):
         for i in range(len(listToCheck)):
