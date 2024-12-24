@@ -21,9 +21,6 @@ class Interface:
         self.fileDropdown = tk.CTkComboBox(self.fileSelectionFrame, state="readonly")
         self.loadButton = tk.CTkButton(self.fileSelectionFrame, text="Load File", command=self.loadFile)
 
-        self.dataLabel = tk.CTkLabel(self.dataSelectionFrame, text="Display expenses by:")
-        self.sortByDropdown = tk.CTkComboBox(self.dataSelectionFrame, values=["Month", "Category"], command=self.updateDataSelection)
-
         self.monthLabel = tk.CTkLabel(self.dataSelectionFrame, text="Months to display:")
         self.monthsDropdown = tk.CTkComboBox(self.dataSelectionFrame, values=self.getAllMonths())
 
@@ -38,15 +35,11 @@ class Interface:
             widget.pack_forget()
 
         # Display appropriate widgets based on selected sortBy value
-        self.dataLabel.pack(in_=self.dataSelectionFrame, padx=10, pady=5)
-        self.sortByDropdown.pack(in_=self.dataSelectionFrame, padx=10, pady=10)
+        self.monthLabel.pack(in_=self.dataSelectionFrame, padx=10, pady=5)
+        self.monthsDropdown.pack(in_=self.dataSelectionFrame, padx=10, pady=10)
 
-        if value == "Month":
-            self.monthLabel.pack(in_=self.dataSelectionFrame, padx=10, pady=5)
-            self.monthsDropdown.pack(in_=self.dataSelectionFrame, padx=10, pady=10)
-        elif value == "Category":
-            self.categoryLabel.pack(in_=self.dataSelectionFrame, padx=10, pady=5)
-            self.categoryDropdown.pack(in_=self.dataSelectionFrame, padx=10, pady=10)
+        self.categoryLabel.pack(in_=self.dataSelectionFrame, padx=10, pady=5)
+        self.categoryDropdown.pack(in_=self.dataSelectionFrame, padx=10, pady=10)
 
 
     def loadGUI(self):
@@ -54,12 +47,11 @@ class Interface:
         self.fileDropdown.pack(in_=self.fileSelectionFrame, padx=10, pady=10)
         self.loadButton.pack(in_=self.fileSelectionFrame, padx=10, pady=10)
 
-        self.dataLabel.pack(in_=self.dataSelectionFrame, padx=10, pady=5)
-        self.sortByDropdown.pack(in_=self.dataSelectionFrame, padx=10, pady=10)
-
         self.monthLabel.pack(in_=self.dataSelectionFrame, padx=10, pady=5)
         self.monthsDropdown.pack(in_=self.dataSelectionFrame, padx=10, pady=10)
 
+        self.categoryLabel.pack(in_=self.dataSelectionFrame, padx=10, pady=5)
+        self.categoryDropdown.pack(in_=self.dataSelectionFrame, padx=10, pady=10)
 
         self.analyzeButton.pack(in_=self.analyzeFrame, padx=10, pady=10)
 
