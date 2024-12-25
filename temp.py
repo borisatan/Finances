@@ -1,48 +1,70 @@
 import customtkinter as ctk
-from matplotlib.figure import Figure
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-import matplotlib.pyplot as plt
 
-# Initialize customtkinter
-ctk.set_appearance_mode("Dark")  # Modes: "System" (default), "Dark", "Light"
-ctk.set_default_color_theme("blue")  # Themes: "blue" (default), "green", "dark-blue"
+class MultiSelectCombobox(ctk.CTkFrame):
+    def __init__(self, master=None, options=None, **kwargs):
+        super().__init__(master, **kwargs)
+        self.selected_values = []
+        self.options = options if options else []
 
+        # Create a combobox-like button
+
+        self.button = ctk.CTkButton(self, text="Select", command=self.show_dropdown)
+        self.button.pack(fill="x", padx=5, pady=5)
+
+    def show_dropdown(self):
+        # Create a dropdown window
+        dropdown = ctk.CTkToplevel(self)
+        dropdown.title("Select Options")
+        dropdown.transient(self)
+
+        # Position dropdown relative to the parent
+        x = self.winfo_rootx()
+        y = self.winfo_rooty() + self.winfo_height()
+        dropdown.geometry(f"+{x}+{y}")
+
+        # Add checkboxes for options
+        self.check_vars = {}
+        for option in self.options:
+            var = ctk.BooleanVar(value=option in self.selected_values)
+            chk = ctk.CTkCheckBox(dropdown, text=option, variable=var, 
+                                  command=lambda opt=option, v=var: self.toggle_option(opt, v))
+            chk.pack(anchor="w", padx=5, pady=2)
+            self.check_vars[option] = var
+
+        # Close button
+        close_button = ctk.CTkButton(dropdown, text="Done", command=dropdown.destroy)
+        close_button.pack(pady=5)
+
+    def toggle_option(self, option, var):
+        if var.get():
+            if option not in self.selected_values:
+                self.selected_values.append(option)
+        else:
+            if option in self.selected_values:
+                self.selected_values.remove(option)
+
+        # Update the displayed text
+        if self.selected_values:
+            self.display_var.set(", ".join(self.selected_values))
+        else:
+            self.display_var.set("Select options")
+
+
+# Main application
 class App(ctk.CTk):
     def __init__(self):
         super().__init__()
-        
-        self.title("CustomTkinter with Matplotlib")
-        self.geometry("800x600")
+        self.title("Multi-select Combobox")
+        self.geometry("300x200")
 
-        # Create a CTkFrame to hold the Matplotlib chart
-        self.chart_frame = ctk.CTkFrame(self)
-        self.chart_frame.pack(pady=20, padx=20, fill="both", expand=True)
+        # Create and pack the custom combobox
+        options = ["Option 1", "Option 2", "Option 3", "Option 4"]
+        multi_select_combobox = MultiSelectCombobox(self, options=options)
+        multi_select_combobox.pack(pady=20)
 
-        # Call the function to add a chart
-        self.add_chart(self.chart_frame)
-
-    def add_chart(self, parent):
-        # Create a Matplotlib figure
-        fig = Figure(figsize=(5, 4), dpi=100)
-        ax = fig.add_subplot(111)
-        
-        # Example plot
-        x = [0, 1, 2, 3, 4, 5]
-        y = [0, 1, 4, 9, 16, 25]
-        ax.plot(x, y, label="y = x^2")
-        ax.set_title("Matplotlib Chart in CustomTkinter")
-        ax.set_xlabel("X-axis")
-        ax.set_ylabel("Y-axis")
-        ax.legend()
-
-        # Embed the Matplotlib figure into the CustomTkinter frame
-        canvas = FigureCanvasTkAgg(fig, master=parent)
-        canvas_widget = canvas.get_tk_widget()
-        canvas_widget.pack(fill="both", expand=True)
-
-        # Draw the canvas
-        canvas.draw()
 
 if __name__ == "__main__":
+    ctk.set_appearance_mode("System")  # Modes: "System", "Dark", "Light"
+    ctk.set_default_color_theme("blue")  # Themes: "blue", "green", "dark-blue"
     app = App()
     app.mainloop()

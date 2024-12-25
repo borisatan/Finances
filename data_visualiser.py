@@ -42,3 +42,6 @@ class Visualiser:
 
         # Show the plot
         plt.show()
+
+    def plotCategories(self):
+        return    
