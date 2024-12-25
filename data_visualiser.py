@@ -3,15 +3,24 @@ import matplotlib.pyplot as plt
 class Visualiser:
     def __init__(self, data):
         self.data = data
-        self.fig, self.ax = plt.subplots(figsize=(12, 8))  # Increase the figure size
+        self.fig, self.ax = plt.subplots(figsize=(12, 8))  
 
-    def plotMonths(self, months: list):
-        # Get monthly expenses from the data
+    def plotMonths(self, months: list, categories: list):
         monthly_expenses = self.data.getExpensesByMonth(months)
 
-        # Prepare data for plotting
         months_list = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
-        expenses = [monthly_expenses[month] for month in range(1, 13)]
+        expenses = [monthly_expenses.get(month, 0) for month in range(1, 13)]  # Get expenses, defaulting to 0 if missing
+
+        # Collect months to remove (those with 0 expense)
+        months_to_remove = [month for month in range(1, 13) if monthly_expenses.get(month, 0) == 0]
+
+        for month in reversed(months_to_remove):
+            del monthly_expenses[month]  # Remove the month from the monthly_expenses dictionary
+            months_list.pop(month - 1)  # Remove the corresponding month from the months_list
+
+        # Prepare the expenses list after filtering out 0 values
+        expenses = [monthly_expenses[month] for month in range(1, 13) if month in monthly_expenses]
+
 
         # Bar chart plotting
         self.ax.bar(months_list, expenses, color='blue')

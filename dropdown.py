@@ -1,15 +1,13 @@
 import customtkinter as ctk
 
 class DropdownMenu:
-    def __init__(self, master=None, options=None, displayText="Select Options", **kwargs):
-        super().__init__(master, **kwargs)
+    def __init__(self, master=None, options=None, displayText="Select Options"):
         self.master = master
         self.selectedValues = []
         self.options = options if options else []
 
 
         self.button = ctk.CTkButton(self.master, text=displayText, command=self.showDropdown)
-        self.button.pack(fill="x", padx=5, pady=5)
 
     def showDropdown(self):
         # Create a dropdown window

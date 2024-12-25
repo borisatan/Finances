@@ -41,8 +41,10 @@ class Interface:
         self.loadButton.pack(in_=self.fileSelectionFrame, padx=10, pady=10)
 
         self.monthLabel.pack(in_=self.dataSelectionFrame, padx=10, pady=5)
+        self.monthsDropdown.button.pack(in_=self.dataSelectionFrame, padx=10, pady=10)
 
         self.categoryLabel.pack(in_=self.dataSelectionFrame, padx=10, pady=5)
+        self.categoryDropdown.button.pack(in_=self.dataSelectionFrame, padx=10, pady=10)
 
         self.analyzeButton.pack(in_=self.analyzeFrame, padx=10, pady=10)
 
@@ -79,7 +81,6 @@ class Interface:
         self.data = Data(self.selectedFile)
 
         self.data.df = self.data.reindex(self.data.df)  # reindexing data
-        print(self.data.df)
 
     def analyze(self):
         self.selectedMonths = self.monthsDropdown.selectedValues
@@ -97,12 +98,19 @@ class Interface:
 
     def makeBarChart(self):
         # if self.monthsDropdown.get() == "All":
-        months = self.selectedMonths if "All" not in self.selectedMonths else self.getAvailableMonths()
+        if "All" not in self.selectedMonths:
+            months = self.selectedMonths
+        else:
+            months =  self.getAvailableMonths()
+        categories = self.selectedCategories if "All" not in self.selectedCategories else self.getAllCategories()
+        monthsDict = self.getMonthsDictionary()
+        monthIndexes = []
 
+        monthIndexes = [monthsDict[month] for month in months if month in monthsDict]
 
         # Create a visualizer and plot the data
         self.visualiser = Visualiser(self.data)
-        self.visualiser.plotMonths(months)
+        self.visualiser.plotMonths(monthIndexes, categories)
 
     def getAvailableMonths(self):
         # Get the months available in the file
@@ -119,6 +127,12 @@ class Interface:
 
     def getAllMonths(self):
         return ["All", "Jan", "Feb", 'Mar', "Apr", 'May', "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+
+    def getMonthsDictionary(self):
+        values = [i for i in range(1, 13)]
+        keys = self.getAllMonths()[1:]
+
+        return dict(zip(keys, values))
 
     def getAllCategories(self):
         return [
