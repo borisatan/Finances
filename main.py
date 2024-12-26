@@ -10,4 +10,5 @@ def main():
 if __name__ == "__main__":
     main()
 
-# TODO: Find a way to display data by month, and to display by category
+# TODO: display by category, line graph per category
+# TODO: shop and transactions in category

@@ -49,7 +49,6 @@ class Interface:
         self.analyzeButton.pack(in_=self.analyzeFrame, padx=10, pady=10)
 
 
-
     def makeFrames(self):
         self.fileSelectionFrame = tk.CTkFrame(self.root)
         # self.fileSelectionFrame.pack(side="left", fill="both", expand=True)
@@ -74,7 +73,7 @@ class Interface:
         self.categoryLabel.pack(in_=self.dataSelectionFrame, padx=10, pady=5)
 
 
-    '''Button Functions'''
+    '''Button and Data Functions'''
 
     def loadFile(self):
         self.selectedFile = self.fileDropdown.get()
@@ -82,19 +81,26 @@ class Interface:
 
         self.data.df = self.data.reindex(self.data.df)  # reindexing data
 
+
     def analyze(self):
         self.selectedMonths = self.monthsDropdown.selectedValues
         self.selectedCategories = self.categoryDropdown.selectedValues
 
         if self.selectedFile:
             print(f"Analyzing for months: {self.selectedMonths}, categories: {self.selectedCategories}")
-            self.makeBarChart()
+            # self.makeBarChart()
+            self.calculateExpensesByCategory()
         else:
             print("SELECT FILE")
 
 
-
     '''Helper Functions'''        
+
+    def calculateExpensesByCategory(self): # -> list of percentages and list of labels
+        data = self.data
+        for i in data.flights:
+            print(i) # TODO implement a function in the data class to categorise the seller
+
 
     def makeBarChart(self):
         # if self.monthsDropdown.get() == "All":
@@ -111,6 +117,7 @@ class Interface:
         # Create a visualizer and plot the data
         self.visualiser = Visualiser(self.data)
         self.visualiser.plotMonths(monthIndexes, categories)
+
 
     def getAvailableMonths(self):
         # Get the months available in the file

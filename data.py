@@ -41,7 +41,7 @@ class Data:
         return df
 
 
-    def categoriseRows(self, listToCheck, value):
+    def categoriseRows(self, listToCheck : list, value : str):
         for i in range(len(listToCheck)):
             if str(listToCheck[i]).lower() in str(value).lower():
                 return True
@@ -105,6 +105,7 @@ class Data:
             
             else:
                 self.others.append(data)
+
 
     def getExpensesByMonth(self, months: list = None):
         """ Returns total expenses per month (1-12). If months is None, all data will be considered. """

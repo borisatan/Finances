@@ -1,28 +1,38 @@
 
 INTERFACE CLASS:
 
+
+                        GUI FUNCTIONS
+
+                    
 def createWidgets -> None
     - defines all widgets
 
 def loadGUi -> None
     - draws firstFrame and secondFrame on grid
 
-def loadFile -> None
-    - creates and initializes a Data object
-
-def analyze -> None
-
-
-def getMonths -> List
-    - returns list of all 12 months
-
-def fillDropdown -> None
-    - gets all file names within the finance_statements directory 
-    - populates the file dropdown menu with them
-
 def makeFrames -> None
     - creates firstFrame for the file selection widgets
     - creates secondFrame for the month selection widgets
+
+def updateDataSelection
+    - reloads GUI
+
+def loadFile -> None
+    - creates and initializes a Data object
+
+
+                        BUTTON AND DATA FUNCTIONS
+
+def analyze -> None
+    - gets months and categories
+    - calls makeBarChart()
+
+daf makeBarChart -> None
+    - gets selected Months and Categories
+    - creates Visualiser object
+
+
 
 
 
@@ -34,20 +44,20 @@ def removeNanRows -> pandas.DataFrame
     - renames unnamed columns
     - removes every row where the price is not a number
 
-def reindex -> pandas.DataFrame
+def reindex(df : DataFrame) -> DataFrame
     - reindexes rows to be from 0 to len(df) - 1
 
-def categoriseRows -> bool
+def categoriseRows(listToCheck : list, value : str) -> bool
     - helper function to check if a certain row falls into a certain category
     - checks if description of item matches a given category
 
 def makeCategories -> None
     - categorises all transactions           
 
-def sortByMonth -> pandas.DataFrame
-    - sorts by month and calls makeCategories
+def getExpensesByMonth(months : list) -> expenses : dictionary
+    - returns dictionary of expenses for all selected months
 
-def printCategories -> None
+def printCategories(categoriesToPrint : list) -> None
     - prints categories
 
 
@@ -55,3 +65,15 @@ def printCategories -> None
 
 
 VISUALISER CLASS:
+
+
+                        MONTHS BAR CHART
+
+def makeBarColors(expenses : list) -> barColors : list
+    - creates colors for each expense based on how large it is
+
+def prepareBarData(months : list)  -> None  
+    - trims expenses and monthsList to prepare them for plotting
+
+def plotMonths(months : list, categories : list) -> None
+    - creates bar chart for selected months and all categories
