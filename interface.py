@@ -1,6 +1,7 @@
 from data import Data
 from data_visualiser import Visualiser
 from dropdown import DropdownMenu
+from helper import Helper
 import customtkinter as tk
 import os
 
@@ -12,6 +13,7 @@ class Interface:
         self.root.title("Finance Tracker")
         self.root.geometry("320x220")
 
+        self.helper = Helper()
         self.selectedMonths = []
         self.selectedCategories = []
 
@@ -27,10 +29,10 @@ class Interface:
         self.loadButton = tk.CTkButton(self.fileSelectionFrame, text="Load File", command=self.loadFile)
 
         self.monthLabel = tk.CTkLabel(self.dataSelectionFrame, text="Months to display:")
-        self.monthsDropdown = DropdownMenu(self.dataSelectionFrame, displayText="Months", options=self.getAllMonths())
+        self.monthsDropdown = DropdownMenu(self.dataSelectionFrame, displayText="Months", options=self.helper.getAllMonths())
 
         self.categoryLabel = tk.CTkLabel(self.dataSelectionFrame, text="Categories to display:")
-        self.categoryDropdown = DropdownMenu(self.dataSelectionFrame, displayText="Categories", options=self.getAllCategories())
+        self.categoryDropdown = DropdownMenu(self.dataSelectionFrame, displayText="Categories", options=self.helper.getAllCategories())
 
         self.analyzeButton = tk.CTkButton(self.analyzeFrame, text="Analyze", command=self.analyze)
 
@@ -107,9 +109,9 @@ class Interface:
         if "All" not in self.selectedMonths:
             months = self.selectedMonths
         else:
-            months =  self.getAvailableMonths()
-        categories = self.selectedCategories if "All" not in self.selectedCategories else self.getAllCategories()
-        monthsDict = self.getMonthsDictionary()
+            months =  self.helper.getAvailableMonths()
+        categories = self.selectedCategories if "All" not in self.selectedCategories else self.helper.getAllCategories()
+        monthsDict = self.helper.getMonthsDictionary()
         monthIndexes = []
 
         monthIndexes = [monthsDict[month] for month in months if month in monthsDict]
@@ -119,41 +121,11 @@ class Interface:
         self.visualiser.plotMonths(monthIndexes, categories)
 
 
-    def getAvailableMonths(self):
-        # Get the months available in the file
-        availableMonths = self.data.df["Date"].apply(lambda x: x.split(".")[1]).unique()
-        availableMonths = sorted(map(int, availableMonths))  # Sort months numerically
-        return availableMonths
-
     def fillDropdown(self):
         files = [f for f in os.listdir("finance_statements")]
         self.fileDropdown.configure(values=files)
 
         if files:
             self.fileDropdown.set(files[0])
-
-    def getAllMonths(self):
-        return ["All", "Jan", "Feb", 'Mar', "Apr", 'May', "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
-
-    def getMonthsDictionary(self):
-        values = [i for i in range(1, 13)]
-        keys = self.getAllMonths()[1:]
-
-        return dict(zip(keys, values))
-
-    def getAllCategories(self):
-        return [
-        "All",
-        "Food", 
-        "Furnitare",
-        "Tech", 
-        "Drugs",
-        "Transport",
-        "Flights", 
-        "Music", 
-        "Shopping",
-        "Gas" ,
-        "Others"]
-    
 
 # TODO: When sorting by month the original dataframe gets messed up
