@@ -6,7 +6,7 @@ class Helper:
         return [
         "All",
         "Food", 
-        "Furnitare",
+        "Furniture",
         "Tech", 
         "Drugs",
         "Transport",
@@ -15,6 +15,39 @@ class Helper:
         "Shopping",
         "Gas" ,
         "Others"]
+    
+    def getSelectedCategories(self, selectedCategories, data):
+        finalCategories = []
+        if "All" not in selectedCategories and len(selectedCategories) != 0:
+            categories = selectedCategories
+        else: 
+            categories = self.getAllCategories()
+        
+        for i in categories:
+            if i.lower() == "food":
+                finalCategories.append(data.food)
+            if i.lower() == "furniture":
+                finalCategories.append(data.furniture)
+            if i.lower() == "tech":
+                finalCategories.append(data.tech)
+            if i.lower() == "drugs":
+                finalCategories.append(data.drugs)
+            if i.lower() == "transport":
+                finalCategories.append(data.transport)
+            if i.lower() == "flights":
+                finalCategories.append(data.flights)
+            if i.lower() == "music":
+                finalCategories.append(data.music)
+            if i.lower() == "shopping":
+                finalCategories.append(data.shopping)
+            if i.lower() == "gas":
+                finalCategories.append(data.gas)
+            if i.lower() == "others":
+                finalCategories.append(data.others)
+            
+        return finalCategories[0]
+
+ 
     
     def getMonthsDictionary(self):
         values = [i for i in range(1, 13)]

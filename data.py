@@ -44,13 +44,13 @@ class Data:
     def categoriseRows(self, listToCheck : list, value : str):
         for i in range(len(listToCheck)):
             if str(listToCheck[i]).lower() in str(value).lower():
-                return True
-        return False 
+                return [True, listToCheck[i]]
+        return [False, False] 
 
     def makeCategories(self):
         # Categories to check
         superMarkets = ["edeka", "lidl", "kaufland", "nah und gut", "rewe", "aldi", "billa"]
-        furnitareStores = ["ikea", "poco", "jysk"]
+        furnitureStores = ["ikea", "poco", "jysk"]
         techStores = ["media markt", "technopolis"]
         drugStores = ["dm", "rossman"]
         transportCompanies = ["miles", "lime"]
@@ -61,7 +61,7 @@ class Data:
 
         # Initialize category lists
         self.food = []
-        self.furnitare = []
+        self.furniture = []
         self.tech = []
         self.drugs = []
         self.transport = []
@@ -74,36 +74,47 @@ class Data:
         # Categorize each row based on description
         for i, row in self.df.iterrows():
             description = row["Description"]
-            data = [row["Currency"], row["Price"], row["Date"], row["Description"]]
+            data = [row["Price"], row["Date"]]
 
-            if self.categoriseRows(superMarkets, description):
+
+            if (self.categoriseRows(superMarkets, description))[0]:
+                data.append(self.categoriseRows(superMarkets, description)[1])
                 self.food.append(data)
 
-            elif self.categoriseRows(furnitareStores, description):
-                self.furnitare.append(data)
+            elif (self.categoriseRows(furnitureStores, description))[0]:
+                data.append(self.categoriseRows(furnitureStores, description)[1])
+                self.furniture.append(data)
 
-            elif self.categoriseRows(techStores, description):
+            elif self.categoriseRows(techStores, description)[0]:
+                data.append(self.categoriseRows(techStores, description)[1])
                 self.tech.append(data)
 
-            elif self.categoriseRows(drugStores, description):
+            elif self.categoriseRows(drugStores, description)[0]:
+                data.append(self.categoriseRows(drugStores, description)[1])
                 self.drugs.append(data)
 
-            elif self.categoriseRows(transportCompanies, description):
+            elif self.categoriseRows(transportCompanies, description)[0]:
+                data.append(self.categoriseRows(transportCompanies, description)[1])
                 self.transport.append(data)
 
-            elif self.categoriseRows(flightCompanies, description):
+            elif self.categoriseRows(flightCompanies, description)[0]:
+                data.append(self.categoriseRows(flightCompanies, description)[1])
                 self.flights.append(data)
 
-            elif self.categoriseRows(musicStores, description):
+            elif self.categoriseRows(musicStores, description)[0]:
+                data.append(self.categoriseRows(musicStores, description)[1])
                 self.music.append(data)    
 
-            elif self.categoriseRows(shoppingStores, description):
+            elif self.categoriseRows(shoppingStores, description)[0]:
+                data.append(self.categoriseRows(shoppingStores, description)[1])
                 self.shopping.append(data)  
 
-            elif self.categoriseRows(gasStations, description):
+            elif self.categoriseRows(gasStations, description)[0]:
+                data.append(self.categoriseRows(gasStations, description)[1])
                 self.gas.append(data)    
             
             else:
+                data.append("Other")
                 self.others.append(data)
 
 
@@ -127,15 +138,7 @@ class Data:
 
         return monthlyExpenses
 
-    def printCategories(self, categoriesToPrint: list = None):
-        """ Prints out the categories. If categoriesToPrint is specified, only those are printed. """
-        if categoriesToPrint:
-            for category in categoriesToPrint:
-                print(f"Category: {category}")
-                for entry in getattr(self, category):
-                    print(entry)
-        else:
-            # If no categories specified, print all data
-            for i, row in self.df.iterrows():
-                print(row.to_list())
-
+    def printCategories(self, categories: list = None):
+        for i in categories:
+            if type(i) is list:
+                print("YES")

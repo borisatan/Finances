@@ -91,20 +91,28 @@ class Interface:
         if self.selectedFile:
             print(f"Analyzing for months: {self.selectedMonths}, categories: {self.selectedCategories}")
             # self.makeBarChart()
-            self.calculateExpensesByCategory()
+            print(self.getPurchases())
         else:
             print("SELECT FILE")
 
 
     '''Helper Functions'''        
 
-    def calculateExpensesByCategory(self): # -> list of percentages and list of labels
-        data = self.data
-        for i in data.flights:
-            print(i) # TODO implement a function in the data class to categorise the seller
+    def getPurchases(self):
+        purchases = self.helper.getSelectedCategories(self.selectedCategories, self.data)
+        months = self.getSelectedMonths()[1]
+        remove = []
 
+        for i, j in enumerate(purchases):
+            # print(i)
+            if int(purchases[i][1].split(".")[1]) not in months:
+                remove.append(j)
 
-    def makeBarChart(self):
+        for i in remove:
+            purchases.remove(i)
+        return purchases        
+
+    def getSelectedMonths(self):
         # if self.monthsDropdown.get() == "All":
         if "All" not in self.selectedMonths:
             months = self.selectedMonths
@@ -115,7 +123,12 @@ class Interface:
         monthIndexes = []
 
         monthIndexes = [monthsDict[month] for month in months if month in monthsDict]
+        return [categories, monthIndexes]
 
+    def makeBarChart(self):
+        mC = self.getSelectedMonths()
+        monthIndexes = mC[0]
+        categories = mC[1]
         # Create a visualizer and plot the data
         self.visualiser = Visualiser(self.data)
         self.visualiser.plotMonths(monthIndexes, categories)
@@ -128,4 +141,4 @@ class Interface:
         if files:
             self.fileDropdown.set(files[0])
 
-# TODO: When sorting by month the original dataframe gets messed up
+# TODO: Refactor everything around the getPuchases method
