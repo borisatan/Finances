@@ -39,11 +39,13 @@ class Visualiser:
 
         # Calculate colors based on percentages
 
-    def prepareBarData(self, months: list, categories: list):
+    def prepareBarData(self, months: list, purchases : list):
         monthlyExpenses = self.data.getExpensesByMonth(months)
+        print(purchases, "prepBarVis")
 
         self.monthsList = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
         self.expenses = [monthlyExpenses.get(month, 0) for month in range(1, 13)]  # Get expenses, defaulting to 0 if missing
+        # print(self.expenses)
 
         # Collect months to remove (those with 0 expense)
         monthsToRemove = [month for month in range(1, 13) if monthlyExpenses.get(month, 0) == 0]
@@ -56,10 +58,10 @@ class Visualiser:
 
 
 
-    def plotMonths(self, months: list, categories: list):
+    def plotMonths(self, months: list, purchases : list):
         plt.style.use("fivethirtyeight")
 
-        self.prepareBarData(months, categories)
+        self.prepareBarData(months, purchases)
         barColors = self.makeBarColors(self.expenses)
             
         # Bar chart plotting

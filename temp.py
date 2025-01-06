@@ -1,70 +1,92 @@
-import customtkinter as ctk
+import matplotlib.pyplot as plt
+from collections import defaultdict
+from datetime import datetime
+import csv
+import os
 
-class MultiSelectCombobox(ctk.CTkFrame):
-    def __init__(self, master=None, options=None, **kwargs):
-        super().__init__(master, **kwargs)
-        self.selected_values = []
-        self.options = options if options else []
+# Example data
+purchases = [
+    [-150, "20.10.2024", "media markt", "Tech"],
+    [-170, "22.10.2024", "lidl", "Food"],
+    [-170, "22.10.2024", "lidl", "Food"],
+    [-200, "15.11.2024", "amazon", "Tech"],
+    [-50, "10.11.2024", "lidl", "Food"]
+]
 
-        # Create a combobox-like button
+# Track created CSV files
+created_files = []
 
-        self.button = ctk.CTkButton(self, text="Select", command=self.show_dropdown)
-        self.button.pack(fill="x", padx=5, pady=5)
+# Step 1: Group data by month and category
+grouped_data = defaultdict(lambda: defaultdict(float))
+purchase_details = defaultdict(list)  # For storing detailed purchases
 
-    def show_dropdown(self):
-        # Create a dropdown window
-        dropdown = ctk.CTkToplevel(self)
-        dropdown.title("Select Options")
-        dropdown.transient(self)
+for price, date_str, place, category in purchases:
+    date_obj = datetime.strptime(date_str, "%d.%m.%Y")
+    month_year = date_obj.strftime("%Y-%m")
+    grouped_data[month_year][category] += price
+    purchase_details[(month_year, category)].append([price, date_str, place, category])
 
-        # Position dropdown relative to the parent
-        x = self.winfo_rootx()
-        y = self.winfo_rooty() + self.winfo_height()
-        dropdown.geometry(f"+{x}+{y}")
+# Step 2: Prepare data for plotting
+months = sorted(grouped_data.keys())
+categories = sorted({category for month in grouped_data for category in grouped_data[month]})
+data = {category: [grouped_data[month].get(category, 0) for month in months] for category in categories}
 
-        # Add checkboxes for options
-        self.check_vars = {}
-        for option in self.options:
-            var = ctk.BooleanVar(value=option in self.selected_values)
-            chk = ctk.CTkCheckBox(dropdown, text=option, variable=var, 
-                                  command=lambda opt=option, v=var: self.toggle_option(opt, v))
-            chk.pack(anchor="w", padx=5, pady=2)
-            self.check_vars[option] = var
+# Step 3: Plot the data
+bar_width = 0.2
+x = range(len(months))
+fig, ax = plt.subplots(figsize=(10, 6))
+bars = {}
 
-        # Close button
-        close_button = ctk.CTkButton(dropdown, text="Done", command=dropdown.destroy)
-        close_button.pack(pady=5)
+for i, (category, values) in enumerate(data.items()):
+    bars[category] = ax.bar(
+        [pos + i * bar_width for pos in x],
+        values,
+        bar_width,
+        label=category,
+        picker=True
+    )
 
-    def toggle_option(self, option, var):
-        if var.get():
-            if option not in self.selected_values:
-                self.selected_values.append(option)
-        else:
-            if option in self.selected_values:
-                self.selected_values.remove(option)
+ax.set_xlabel('Month')
+ax.set_ylabel('Total Spent')
+ax.set_title('Purchases by Month and Category')
+ax.set_xticks([pos + (len(categories) - 1) * bar_width / 2 for pos in x])
+ax.set_xticklabels(months)
+ax.legend()
 
-        # Update the displayed text
-        if self.selected_values:
-            self.display_var.set(", ".join(self.selected_values))
-        else:
-            self.display_var.set("Select options")
+def on_pick(event):
+    bar = event.artist
+    x_positions = bar.get_x() + bar.get_width() / 2
+    x_value = event.mouseevent.xdata
+    index = (abs(x_positions - x_value)).argmin()
+    category = next(cat for cat, bars_group in bars.items() if bar in bars_group)
+    month = months[index]
+    
+    details = purchase_details[(month, category)]
+    
+    print(f"Purchases for {category} in {month}:")
+    for detail in details:
+        print(detail)
+    filename = f"purchases_{category}_{month}.csv".replace(' ', '_')
+    with open(filename, mode='w', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow(["Price ", " Date ", " Place ", " Category"])
+        for detail in details:
+            # Adding a space between each value for readability
+            writer.writerow([detail[0]] + [f" {value} " for value in detail[1:]])
 
+    created_files.append(filename)
+    print(f"Details saved to {filename}")
 
-# Main application
-class App(ctk.CTk):
-    def __init__(self):
-        super().__init__()
-        self.title("Multi-select Combobox")
-        self.geometry("300x200")
+def on_close(event):
+    for filename in created_files:
+        try:
+            os.remove(filename)
+            print(f"Deleted file: {filename}")
+        except OSError as e:
+            print(f"Error deleting file {filename}: {e}")
 
-        # Create and pack the custom combobox
-        options = ["Option 1", "Option 2", "Option 3", "Option 4"]
-        multi_select_combobox = MultiSelectCombobox(self, options=options)
-        multi_select_combobox.pack(pady=20)
+fig.canvas.mpl_connect('pick_event', on_pick)
+fig.canvas.mpl_connect('close_event', on_close)
 
-
-if __name__ == "__main__":
-    ctk.set_appearance_mode("System")  # Modes: "System", "Dark", "Light"
-    ctk.set_default_color_theme("blue")  # Themes: "blue", "green", "dark-blue"
-    app = App()
-    app.mainloop()
+plt.tight_layout()
+plt.show()

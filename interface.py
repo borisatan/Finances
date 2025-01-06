@@ -90,8 +90,7 @@ class Interface:
 
         if self.selectedFile:
             print(f"Analyzing for months: {self.selectedMonths}, categories: {self.selectedCategories}")
-            # self.makeBarChart()
-            print(self.getPurchases())
+            self.makeBarChart(self.getPurchases())
         else:
             print("SELECT FILE")
 
@@ -102,36 +101,42 @@ class Interface:
         purchases = self.helper.getSelectedCategories(self.selectedCategories, self.data)
         months = self.getSelectedMonths()[1]
         remove = []
-
         for i, j in enumerate(purchases):
-            # print(i)
-            if int(purchases[i][1].split(".")[1]) not in months:
+            if not (int((purchases[i])[1].split(".")[1]) in months):
                 remove.append(j)
 
-        for i in remove:
-            purchases.remove(i)
+        # Make purchase and remove lists sets, to get their disjunktion
+        purchaseSet = set(map(tuple, purchases))
+        removeSet = set(map(tuple, remove))
+
+        purchases = list(map(list, purchaseSet.difference(removeSet))) # Get intersection and convert back to a list
         return purchases        
 
     def getSelectedMonths(self):
         # if self.monthsDropdown.get() == "All":
-        if "All" not in self.selectedMonths:
-            months = self.selectedMonths
+        if "All" in self.selectedMonths or self.selectedMonths == []:
+            months =  self.helper.getAvailableMonths(self.data)
         else:
-            months =  self.helper.getAvailableMonths()
-        categories = self.selectedCategories if "All" not in self.selectedCategories else self.helper.getAllCategories()
+            months = self.selectedMonths
+        
+        if ("All" in self.selectedCategories) or self.selectedCategories == []:
+            categories = self.helper.getAllCategories()
+        else:
+            categories = self.selectedCategories
         monthsDict = self.helper.getMonthsDictionary()
         monthIndexes = []
 
         monthIndexes = [monthsDict[month] for month in months if month in monthsDict]
         return [categories, monthIndexes]
 
-    def makeBarChart(self):
+    def makeBarChart(self, purchases):
         mC = self.getSelectedMonths()
         monthIndexes = mC[0]
         categories = mC[1]
+        
         # Create a visualizer and plot the data
         self.visualiser = Visualiser(self.data)
-        self.visualiser.plotMonths(monthIndexes, categories)
+        self.visualiser.plotMonths(monthIndexes, purchases)
 
 
     def fillDropdown(self):
