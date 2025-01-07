@@ -16,36 +16,43 @@ class Helper:
         "Gas" ,
         "Others"]
     
+    def appendAllItems(self, finalPurchases, dataToAppend):
+        for i in dataToAppend:
+            finalPurchases.append(i)
+
+        return finalPurchases    
+
     def getSelectedCategories(self, selectedCategories, data):
-        finalCategories = []
-        if "All" not in selectedCategories and len(selectedCategories) != 0:
+        finalPurchases = []
+        if not ("All" in selectedCategories) and len(selectedCategories) != 0:
             categories = selectedCategories
         else: 
             categories = self.getAllCategories()
-        
+
+            
         for i in categories:
             if i.lower() == "food":
-                finalCategories.append(data.food)
+                finalPurchases = self.appendAllItems(finalPurchases, data.food)
             if i.lower() == "furniture":
-                finalCategories.append(data.furniture)
+                finalPurchases = self.appendAllItems(finalPurchases, data.furniture)
             if i.lower() == "tech":
-                finalCategories.append(data.tech)
+                finalPurchases = self.appendAllItems(finalPurchases, data.tech)
             if i.lower() == "drugs":
-                finalCategories.append(data.drugs)
+                finalPurchases = self.appendAllItems(finalPurchases, data.drugs)
             if i.lower() == "transport":
-                finalCategories.append(data.transport)
+                finalPurchases = self.appendAllItems(finalPurchases, data.transport)
             if i.lower() == "flights":
-                finalCategories.append(data.flights)
+                finalPurchases = self.appendAllItems(finalPurchases, data.flights)
             if i.lower() == "music":
-                finalCategories.append(data.music)
+                finalPurchases = self.appendAllItems(finalPurchases, data.music)
             if i.lower() == "shopping":
-                finalCategories.append(data.shopping)
+                finalPurchases = self.appendAllItems(finalPurchases, data.shopping)
             if i.lower() == "gas":
-                finalCategories.append(data.gas)
+                finalPurchases = self.appendAllItems(finalPurchases, data.gas)
             if i.lower() == "others":
-                finalCategories.append(data.others)
-            
-        return finalCategories[0]
+                finalPurchases = self.appendAllItems(finalPurchases, data.others)
+
+        return finalPurchases
 
  
     

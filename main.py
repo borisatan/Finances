@@ -10,5 +10,7 @@ def main():
 if __name__ == "__main__":
     main()
 
-# TODO: display by category, line graph per category
-# TODO: shop and transactions in category
+# TODO: Data is squished
+# TODO: Open chart in full screen
+# TODO: When visualising, make prices only be whole numbers
+# TODO: Refactor Code and remove unnecessary parts

@@ -1,94 +1,122 @@
 import matplotlib.pyplot as plt
+from collections import defaultdict
+from datetime import datetime
+import currency_converter
+import csv
+import os
 
 class Visualiser:
     def __init__(self, data):
         self.data = data
+        self.currencyConverter = currency_converter.CurrencyConverter()
 
         plt.style.use("fivethirtyeight")
-        self.fig, self.ax = plt.subplots(figsize=(12, 8))  
+        self.fig, self.ax = plt.subplots(figsize=(12, 8))  # Initialize a larger figure size
 
+    def plotFinances(self, purchases):
+        # Track created CSV files
+        self.createdFiles = []
 
-    def plotCategories(self):
-        return    
-    
-    
-    def makeBarColors(self, expenses):
-        biggestExpense = expenses[0]
+        # Group data by month and category
+        groupedData = defaultdict(lambda: defaultdict(float))
+        self.purchaseDetails = defaultdict(list)  # For storing detailed purchases
 
-        for exp in expenses:
-            if exp > biggestExpense:
-                biggestExpense = exp
+        for price, dateStr, place, category, description in purchases:
+            price *= -1
 
-        colors = []
+            dateObj = datetime.strptime(dateStr, "%d.%m.%Y")
+            monthYear = dateObj.strftime("%Y-%m")
+            groupedData[monthYear][category] += price
+            self.purchaseDetails[(monthYear, category)].append([price, dateStr, place, category, description])
 
-        for i in expenses:
-            percent = 1 / (biggestExpense / i)
-            if percent > 0.75:  # Highest range (close to biggestExpense)
-                colors.append("crimson")
-            elif percent > 0.5:  # Middle range
-                colors.append("darkorange")
-            elif percent > 0.25:  # Lower middle range
-                colors.append("gold")
-            elif percent > 0:  # Smallest range
-                colors.append("forestgreen")
-            else:
-                colors.append("cyan")    
-        
-        return colors
+        # Prepare data for plotting
+        self.months = sorted(groupedData.keys())
+        categories = sorted({category for month in groupedData for category in groupedData[month]})
+        data = {category: [groupedData[month].get(category, 0) for month in self.months] for category in categories}
 
+        # Set up bar chart parameters
+        try: barWidth = 0.8 / len(categories)  # Adjust bar width based on number of categories
+        except ZeroDivisionError: print("No categories given")     
 
-        # Calculate colors based on percentages
+        x = range(len(self.months))
+        self.bars = {}
 
-    def prepareBarData(self, months: list, purchases : list):
-        monthlyExpenses = self.data.getExpensesByMonth(months)
-        print(purchases, "prepBarVis")
-
-        self.monthsList = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
-        self.expenses = [monthlyExpenses.get(month, 0) for month in range(1, 13)]  # Get expenses, defaulting to 0 if missing
-        # print(self.expenses)
-
-        # Collect months to remove (those with 0 expense)
-        monthsToRemove = [month for month in range(1, 13) if monthlyExpenses.get(month, 0) == 0]
-        for month in reversed(monthsToRemove):    
-            del monthlyExpenses[month]  
-            self.monthsList.pop(month - 1)
-
-        # Prepare the expenses list after filtering out 0 values
-        self.expenses = [monthlyExpenses[month] for month in range(1, 13) if month in monthlyExpenses]
-
-
-
-    def plotMonths(self, months: list, purchases : list):
-        plt.style.use("fivethirtyeight")
-
-        self.prepareBarData(months, purchases)
-        barColors = self.makeBarColors(self.expenses)
-            
-        # Bar chart plotting
-        self.ax.bar(self.monthsList, self.expenses, color=barColors)
-        bars = self.ax.bar(self.monthsList, self.expenses, color=barColors)
-
-        # Add labels and title
-        self.ax.set_xlabel('Month', fontsize=14, fontweight="bold", labelpad=10)
-        self.ax.set_ylabel('Expenses (BGN)', fontsize=14, fontweight="bold", labelpad=10)
-        self.ax.set_title('Monthly Expenses', fontweight="bold", fontsize=16)
-
-        # Rotate x-axis labels to avoid clipping
-        self.ax.set_xticks(range(len(self.monthsList)))
-        self.ax.set_xticklabels(self.monthsList, rotation=45, ha='right', fontsize=12)
-
-        for bar in bars:
-            yval = bar.get_height()  # Get the height of the bar (expense value)
-            labelOffset = 5 if yval > 0 else -5
-            self.ax.text(
-                bar.get_x() + bar.get_width() / 2,  # X position (middle of the bar)
-                (yval + labelOffset),  # Y position (slightly above the bar)
-                f'{yval:.2f}',  # Format the label to show two decimal places
-                ha='center',  # Center the label horizontally
-                va='bottom' if yval > 0 else 'top',  # Position the label above the bar
-                fontsize=12
+        # Plot a bar for each category
+        for i, (category, values) in enumerate(data.items()):
+            bar_positions = [pos + (i - len(categories)/2) * barWidth + barWidth/2 for pos in x]
+            self.bars[category] = self.ax.bar(
+                bar_positions,
+                values,
+                barWidth,
+                label=category,
+                picker=True
             )
+            # Add labels to each bar
+            for pos, value in zip(bar_positions, values):
+                y_offset = -5 if value < 0 else 5  # Offset below for negative, above for positive
+                self.ax.text(
+                    pos,
+                    value + y_offset,
+                    f'{value:.2f}',
+                    ha='center',
+                    va='bottom' if value > 0 else 'top',
+                    fontsize=9,
+                    color='black'
+                )
 
-        # Ensure the layout is tight to prevent clipping
+        self.ax.set_xlabel('Month')
+        self.ax.set_ylabel('Total Spent')
+        self.ax.set_title('Purchases by Month and Category')
+        self.ax.set_xticks([pos + barWidth * (len(categories) - 1) / 2 for pos in x])
+        self.ax.set_xticklabels(self.months)
+        self.ax.legend(loc='upper left', bbox_to_anchor=(1, 0.5))
+
+        self.fig.canvas.mpl_connect('pick_event', self.onPick)
+        self.fig.canvas.mpl_connect('close_event', self.onClose)
+
         plt.tight_layout()
         plt.show()
+
+    def onPick(self, event):
+        # Handle pick event when a bar is clicked
+        bar = event.artist
+        xValue = event.mouseevent.xdata
+        
+        # Find the correct bar group and corresponding month index
+        for category, barsGroup in self.bars.items():
+            if bar in barsGroup:
+                index = barsGroup.index(bar)
+                selected_category = category
+                break
+                
+        month = self.months[index]
+        
+        # Retrieve and display purchase details
+        details = self.purchaseDetails[(month, selected_category)]
+        print(f"Purchases for {selected_category} in {month}:")
+        for detail in details:
+            print(detail)
+        
+        # Ensure the directory exists
+        directory = "Category Statements"
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+
+        # Create and write to the CSV file
+        filename = os.path.join(directory, f"purchases_{selected_category}_{month}.csv".replace(' ', '_'))
+        with open(filename, mode='w', newline='') as file:
+            writer = csv.writer(file)
+            writer.writerow(["Price", "Date", "Place", "Category", "Description"])
+            writer.writerows(details)
+        
+        self.createdFiles.append(filename)
+        print(f"Details saved to {filename}")
+
+    def onClose(self, event):
+        # Handle close event to clean up created files
+        for filename in self.createdFiles:
+            try:
+                os.remove(filename)
+                print(f"Deleted file: {filename}")
+            except OSError as e:
+                print(f"Error deleting file {filename}: {e}")

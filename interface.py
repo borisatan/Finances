@@ -90,7 +90,11 @@ class Interface:
 
         if self.selectedFile:
             print(f"Analyzing for months: {self.selectedMonths}, categories: {self.selectedCategories}")
-            self.makeBarChart(self.getPurchases())
+            purchases = self.getPurchases()
+            print(purchases)
+
+            self.visualiser = Visualiser(self.data)
+            self.visualiser.plotFinances(purchases)
         else:
             print("SELECT FILE")
 
@@ -114,8 +118,8 @@ class Interface:
 
     def getSelectedMonths(self):
         # if self.monthsDropdown.get() == "All":
-        if "All" in self.selectedMonths or self.selectedMonths == []:
-            months =  self.helper.getAvailableMonths(self.data)
+        if ("All" in self.selectedMonths) or not self.selectedMonths:
+            months = self.helper.getAvailableMonths(self.data)
         else:
             months = self.selectedMonths
         
@@ -123,24 +127,16 @@ class Interface:
             categories = self.helper.getAllCategories()
         else:
             categories = self.selectedCategories
+
         monthsDict = self.helper.getMonthsDictionary()
-        monthIndexes = []
 
         monthIndexes = [monthsDict[month] for month in months if month in monthsDict]
+        if not monthIndexes: monthIndexes = months
+        
         return [categories, monthIndexes]
 
-    def makeBarChart(self, purchases):
-        mC = self.getSelectedMonths()
-        monthIndexes = mC[0]
-        categories = mC[1]
-        
-        # Create a visualizer and plot the data
-        self.visualiser = Visualiser(self.data)
-        self.visualiser.plotMonths(monthIndexes, purchases)
-
-
     def fillDropdown(self):
-        files = [f for f in os.listdir("finance_statements")]
+        files = [f for f in os.listdir("Finance Statements")]
         self.fileDropdown.configure(values=files)
 
         if files:

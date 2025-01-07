@@ -3,7 +3,7 @@ import os
 
 class Data:
     def __init__(self, file):
-        self.df = pd.read_excel(f"finance_statements/{file}", usecols=[2, 3, 7, 11])
+        self.df = pd.read_excel(f"Finance Statements/{file}", usecols=[2, 3, 7, 11])
         self.removeNanRows()
 
         self.makeCategories()
@@ -46,6 +46,44 @@ class Data:
             if str(listToCheck[i]).lower() in str(value).lower():
                 return [True, listToCheck[i]]
         return [False, False] 
+    
+    def convertToLatin(self, text : str):
+        bulgarianToLatin = {
+            'а': 'a', 'А': 'A',
+            'б': 'b', 'Б': 'B',
+            'в': 'v', 'В': 'V',
+            'г': 'g', 'Г': 'G',
+            'д': 'd', 'Д': 'D',
+            'е': 'e', 'Е': 'E',
+            'ж': 'zh', 'Ж': 'Zh',
+            'з': 'z', 'З': 'Z',
+            'и': 'i', 'И': 'I',
+            'й': 'y', 'Й': 'Y',
+            'к': 'k', 'К': 'K',
+            'л': 'l', 'Л': 'L',
+            'м': 'm', 'М': 'M',
+            'н': 'n', 'Н': 'N',
+            'о': 'o', 'О': 'O',
+            'п': 'p', 'П': 'P',
+            'р': 'r', 'Р': 'R',
+            'с': 's', 'С': 'S',
+            'т': 't', 'Т': 'T',
+            'у': 'u', 'У': 'U',
+            'ф': 'f', 'Ф': 'F',
+            'х': 'h', 'Х': 'H',
+            'ц': 'ts', 'Ц': 'Ts',
+            'ч': 'ch', 'Ч': 'Ch',
+            'ш': 'sh', 'Ш': 'Sh',
+            'щ': 'sht', 'Щ': 'Sht',
+            'ъ': 'a', 'Ъ': 'A',
+            'ь': 'y', 'Ь': 'Y',
+            'ю': 'yu', 'Ю': 'Yu',
+            'я': 'ya', 'Я': 'Ya'
+        }
+
+        
+        table  = str.maketrans(bulgarianToLatin)
+        return text.translate(table)
 
     def makeCategories(self):
         # Categories to check
@@ -75,54 +113,66 @@ class Data:
         for i, row in self.df.iterrows():
             description = row["Description"]
             data = [row["Price"], row["Date"]]
+            descriptionInLatin = self.convertToLatin(str(description))
 
 
             if (self.categoriseRows(superMarkets, description))[0]:
                 data.append(self.categoriseRows(superMarkets, description)[1])
                 data.append("Food")
+                data.append(descriptionInLatin)
                 self.food.append(data)
 
             elif (self.categoriseRows(furnitureStores, description))[0]:
                 data.append(self.categoriseRows(furnitureStores, description)[1])
                 data.append("Furniture")
+                data.append(descriptionInLatin)
                 self.furniture.append(data)
 
             elif self.categoriseRows(techStores, description)[0]:
                 data.append(self.categoriseRows(techStores, description)[1])
                 data.append("Tech")
+                data.append(descriptionInLatin)
                 self.tech.append(data)
 
             elif self.categoriseRows(drugStores, description)[0]:
                 data.append(self.categoriseRows(drugStores, description)[1])
                 data.append("Drugs")
+                data.append(descriptionInLatin)
                 self.drugs.append(data)
 
             elif self.categoriseRows(transportCompanies, description)[0]:
                 data.append(self.categoriseRows(transportCompanies, description)[1])
                 data.append("Transport")
+                data.append(descriptionInLatin)
                 self.transport.append(data)
 
             elif self.categoriseRows(flightCompanies, description)[0]:
                 data.append(self.categoriseRows(flightCompanies, description)[1])
                 data.append("Flights")
+                data.append(descriptionInLatin)
                 self.flights.append(data)
 
             elif self.categoriseRows(musicStores, description)[0]:
                 data.append(self.categoriseRows(musicStores, description)[1])
                 data.append("Music")
+                data.append(descriptionInLatin)
                 self.music.append(data)    
 
             elif self.categoriseRows(shoppingStores, description)[0]:
                 data.append(self.categoriseRows(shoppingStores, description)[1])
                 data.append("Shopping")
+                data.append(descriptionInLatin)
                 self.shopping.append(data)  
 
             elif self.categoriseRows(gasStations, description)[0]:
                 data.append(self.categoriseRows(gasStations, description)[1])
                 data.append("Gas")
+                data.append(descriptionInLatin)
                 self.gas.append(data)    
             
             else:
+                data.append(descriptionInLatin)
+                data.append("Other")
                 data.append("Other")
                 self.others.append(data)
 
