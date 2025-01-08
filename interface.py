@@ -2,6 +2,7 @@ from data import Data
 from data_visualiser import Visualiser
 from dropdown import DropdownMenu
 from helper import Helper
+from tkinter import ttk, Toplevel
 import customtkinter as tk
 import os
 
@@ -65,6 +66,63 @@ class Interface:
         self.analyzeFrame.grid(row=1, column=0, columnspan=2, sticky="nsew")
 
 
+    def display_data_in_treeview(self, details, month, category):
+        window = Toplevel(self.root)
+        window.title(f"Purchases for {category} in {month}")
+
+        # Define the treeview with column names
+        tree = ttk.Treeview(window, columns=('Price', 'Date', 'Place', 'Category', 'Description'), show='headings')
+        tree.heading('Price', text='Price')
+        tree.heading('Date', text='Date')
+        tree.heading('Place', text='Place')
+        tree.heading('Category', text='Category')
+        tree.heading('Description', text='Description')
+
+        # Set font size for all columns using tags
+        tree.tag_configure('big', font=('Arial', 16))  # Configure a tag with font size
+
+        # Function to wrap text manually into lines
+        def wrap_text(text, max_length=50):
+            words = text.split(' ')
+            lines = []
+            current_line = []
+
+            for word in words:
+                if sum(len(w) for w in current_line) + len(word) + len(current_line) > max_length:
+                    lines.append(' '.join(current_line))
+                    current_line = [word]
+                else:
+                    current_line.append(word)
+
+            lines.append(' '.join(current_line))
+            return lines
+
+        # Insert each row into the Treeview and apply the 'big' tag to the rows
+        for detail in details:
+            # Wrap the description text into multiple lines
+            description_lines = wrap_text(detail[4], max_length=50)
+
+            # Insert each line as a separate row with the same data for other columns
+            for line in description_lines:
+                tree.insert('', 'end', values=(detail[0], detail[1], detail[2], detail[3], line), tags=('big',))
+
+        # Pack the treeview and add horizontal scrolling
+        tree.pack(expand=True, fill='both', side='top')
+
+        # Add a horizontal scrollbar to the Treeview
+        horizontal_scrollbar = ttk.Scrollbar(window, orient="horizontal", command=tree.xview)
+        tree.configure(xscroll=horizontal_scrollbar.set)
+        horizontal_scrollbar.pack(side='bottom', fill='x')
+
+        # # Add a vertical scrollbar to the Treeview
+        # vertical_scrollbar = ttk.Scrollbar(window, orient="vertical", command=tree.yview)
+        # tree.configure(yscroll=vertical_scrollbar.set)
+        # vertical_scrollbar.pack(side='right', fill='y')
+
+
+  
+
+
     '''Button and Data Functions'''
 
     def loadFile(self):
@@ -83,7 +141,7 @@ class Interface:
             purchases = self.getPurchases()
 
             self.visualiser = Visualiser(self.data)
-            self.visualiser.plotFinances(purchases)
+            self.visualiser.plotFinances(purchases, onPick=self.display_data_in_treeview)
         else:
             print("SELECT FILE")
 

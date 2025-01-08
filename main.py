@@ -10,7 +10,6 @@ def main():
 if __name__ == "__main__":
     main()
 
-# TODO: Data is squished
-# TODO: Open chart in full screen
-# TODO: When visualising, make prices only be whole numbers
-# TODO: Refactor Code and remove unnecessary parts
+
+# TODO: Fix horizontal scrolling / description wrapping?
+# TODO: Add space between each row to make them more readable
