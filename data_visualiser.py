@@ -1,4 +1,6 @@
 import matplotlib.pyplot as plt
+import matplotlib.cm as cm
+import numpy as np
 from collections import defaultdict
 from datetime import datetime
 import currency_converter
@@ -11,7 +13,6 @@ class Visualiser:
         self.currencyConverter = currency_converter.CurrencyConverter()
 
         plt.style.use("fivethirtyeight")
-        self.fig, self.ax = plt.subplots(figsize=(12, 8))  # Initialize a larger figure size
 
     def plotFinances(self, purchases):
         # Track created CSV files
@@ -34,21 +35,33 @@ class Visualiser:
         categories = sorted({category for month in groupedData for category in groupedData[month]})
         data = {category: [groupedData[month].get(category, 0) for month in self.months] for category in categories}
 
+        # Adjust figure size dynamically based on data size
+        fig_width = max(12, len(self.months) * len(categories) * 0.5)
+        fig_height = max(8, len(categories) * 0.5)
+        self.fig, self.ax = plt.subplots(figsize=(fig_width, fig_height))
+
         # Set up bar chart parameters
-        try: barWidth = 0.8 / len(categories)  # Adjust bar width based on number of categories
-        except ZeroDivisionError: print("No categories given")     
+        try:
+            barWidth = 0.8 / len(categories)  # Adjust bar width based on number of categories
+        except ZeroDivisionError:
+            print("No categories given")
 
         x = range(len(self.months))
         self.bars = {}
 
+        # Generate a color map with enough unique colors
+        cmap = cm.get_cmap('Set1', len(categories))  # 'tab20' provides 20 distinct colors
+
         # Plot a bar for each category
         for i, (category, values) in enumerate(data.items()):
-            bar_positions = [pos + (i - len(categories)/2) * barWidth + barWidth/2 for pos in x]
+            color = cmap(i)  # Get a unique color from the colormap
+            bar_positions = [pos + (i - len(categories) / 2) * barWidth + barWidth / 2 for pos in x]
             self.bars[category] = self.ax.bar(
                 bar_positions,
                 values,
                 barWidth,
                 label=category,
+                color = color,
                 picker=True
             )
             # Add labels to each bar
@@ -57,7 +70,7 @@ class Visualiser:
                 self.ax.text(
                     pos,
                     value + y_offset,
-                    f'{value:.2f}',
+                    f'{int(value)}',  # Display integer values
                     ha='center',
                     va='bottom' if value > 0 else 'top',
                     fontsize=9,
@@ -73,6 +86,12 @@ class Visualiser:
 
         self.fig.canvas.mpl_connect('pick_event', self.onPick)
         self.fig.canvas.mpl_connect('close_event', self.onClose)
+
+        # Adjust window size and position
+        mng = plt.get_current_fig_manager()
+        if hasattr(mng, 'window') and hasattr(mng.window, 'wm_geometry'):
+            window_size = f"{int(fig_width * 80)}x{int(fig_height * 80)}+100+100"
+            mng.window.wm_geometry(window_size)
 
         plt.tight_layout()
         plt.show()

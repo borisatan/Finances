@@ -85,6 +85,13 @@ class Data:
         table  = str.maketrans(bulgarianToLatin)
         return text.translate(table)
 
+    def appendDataCategories(self, listToCheck, category, description, data, descriptionInLatin):
+        data.append(self.categoriseRows(listToCheck, description)[1])
+        data.append(category)
+        data.append(descriptionInLatin)
+
+        return data
+    
     def makeCategories(self):
         # Categories to check
         superMarkets = ["edeka", "lidl", "kaufland", "nah und gut", "rewe", "aldi", "billa"]
@@ -117,57 +124,40 @@ class Data:
 
 
             if (self.categoriseRows(superMarkets, description))[0]:
-                data.append(self.categoriseRows(superMarkets, description)[1])
-                data.append("Food")
-                data.append(descriptionInLatin)
+                data = self.appendDataCategories(superMarkets, "Food", description, data, descriptionInLatin)
                 self.food.append(data)
 
             elif (self.categoriseRows(furnitureStores, description))[0]:
-                data.append(self.categoriseRows(furnitureStores, description)[1])
-                data.append("Furniture")
-                data.append(descriptionInLatin)
+                data = self.appendDataCategories(furnitureStores, "Furniture", description, data, descriptionInLatin)
                 self.furniture.append(data)
 
             elif self.categoriseRows(techStores, description)[0]:
-                data.append(self.categoriseRows(techStores, description)[1])
-                data.append("Tech")
-                data.append(descriptionInLatin)
+                data = self.appendDataCategories(techStores, "Tech", description, data, descriptionInLatin)
                 self.tech.append(data)
 
             elif self.categoriseRows(drugStores, description)[0]:
-                data.append(self.categoriseRows(drugStores, description)[1])
-                data.append("Drugs")
-                data.append(descriptionInLatin)
+                data = self.appendDataCategories(drugStores, "Drugs", description, data, descriptionInLatin)
                 self.drugs.append(data)
 
             elif self.categoriseRows(transportCompanies, description)[0]:
-                data.append(self.categoriseRows(transportCompanies, description)[1])
-                data.append("Transport")
-                data.append(descriptionInLatin)
+                data = self.appendDataCategories(transportCompanies, "Transport", description, data, descriptionInLatin)
                 self.transport.append(data)
 
             elif self.categoriseRows(flightCompanies, description)[0]:
-                data.append(self.categoriseRows(flightCompanies, description)[1])
-                data.append("Flights")
-                data.append(descriptionInLatin)
+                data = self.appendDataCategories(flightCompanies, "Flights", description, data, descriptionInLatin)
                 self.flights.append(data)
 
             elif self.categoriseRows(musicStores, description)[0]:
-                data.append(self.categoriseRows(musicStores, description)[1])
-                data.append("Music")
-                data.append(descriptionInLatin)
+                data = self.appendDataCategories(musicStores, "Music", description, data, descriptionInLatin)
                 self.music.append(data)    
 
             elif self.categoriseRows(shoppingStores, description)[0]:
-                data.append(self.categoriseRows(shoppingStores, description)[1])
-                data.append("Shopping")
-                data.append(descriptionInLatin)
+                data = self.appendDataCategories(shoppingStores, "Shopping", description, data, descriptionInLatin)
+
                 self.shopping.append(data)  
 
             elif self.categoriseRows(gasStations, description)[0]:
-                data.append(self.categoriseRows(gasStations, description)[1])
-                data.append("Gas")
-                data.append(descriptionInLatin)
+                data = self.appendDataCategories(gasStations, "Gas", description, data, descriptionInLatin)
                 self.gas.append(data)    
             
             else:
@@ -175,7 +165,7 @@ class Data:
                 data.append("Other")
                 data.append("Other")
                 self.others.append(data)
-
+                
 
     def getExpensesByMonth(self, months: list = None):
         """ Returns total expenses per month (1-12). If months is None, all data will be considered. """

@@ -65,16 +65,6 @@ class Interface:
         self.analyzeFrame.grid(row=1, column=0, columnspan=2, sticky="nsew")
 
 
-    def updateDataSelection(self, value):
-        # Clear current widgets in dataSelectionFrame
-        for widget in self.dataSelectionFrame.winfo_children():
-            widget.pack_forget()
-
-        self.monthLabel.pack(in_=self.dataSelectionFrame, padx=10, pady=5)
-
-        self.categoryLabel.pack(in_=self.dataSelectionFrame, padx=10, pady=5)
-
-
     '''Button and Data Functions'''
 
     def loadFile(self):
@@ -91,7 +81,6 @@ class Interface:
         if self.selectedFile:
             print(f"Analyzing for months: {self.selectedMonths}, categories: {self.selectedCategories}")
             purchases = self.getPurchases()
-            print(purchases)
 
             self.visualiser = Visualiser(self.data)
             self.visualiser.plotFinances(purchases)
@@ -141,5 +130,3 @@ class Interface:
 
         if files:
             self.fileDropdown.set(files[0])
-
-# TODO: Refactor everything around the getPuchases method
