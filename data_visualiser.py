@@ -14,6 +14,7 @@ class Visualiser:
 
         plt.style.use("fivethirtyeight")
 
+
     def plotFinances(self, purchases, onPick=None):
         # Track created CSV files
         self.createdFiles = []
@@ -36,9 +37,9 @@ class Visualiser:
         data = {category: [groupedData[month].get(category, 0) for month in self.months] for category in categories}
 
         # Adjust figure size dynamically based on data size
-        fig_width = max(12, len(self.months) * len(categories) * 0.5)
-        fig_height = max(8, len(categories) * 0.5)
-        self.fig, self.ax = plt.subplots(figsize=(fig_width, fig_height))
+        figWidth = max(12, len(self.months) * len(categories) * 0.5)
+        figHeight = max(8, len(categories) * 0.5)
+        self.fig, self.ax = plt.subplots(figsize=(figWidth, figHeight))
 
         # Set up bar chart parameters
         try:
@@ -55,9 +56,9 @@ class Visualiser:
         # Plot a bar for each category
         for i, (category, values) in enumerate(data.items()):
             color = cmap(i)  # Get a unique color from the colormap
-            bar_positions = [pos + (i - len(categories) / 2) * barWidth + barWidth / 2 for pos in x]
+            barPositions = [pos + (i - len(categories) / 2) * barWidth + barWidth / 2 for pos in x]
             self.bars[category] = self.ax.bar(
-                bar_positions,
+                barPositions,
                 values,
                 barWidth,
                 label=category,
@@ -65,11 +66,11 @@ class Visualiser:
                 picker=True
             )
             # Add labels to each bar
-            for pos, value in zip(bar_positions, values):
-                y_offset = -5 if value < 0 else 5  # Offset below for negative, above for positive
+            for pos, value in zip(barPositions, values):
+                yOffset = -5 if value < 0 else 5  # Offset below for negative, above for positive
                 self.ax.text(
                     pos,
-                    value + y_offset,
+                    value + yOffset,
                     f'{int(value)}',  # Display integer values
                     ha='center',
                     va='bottom' if value > 0 else 'top',
@@ -83,6 +84,7 @@ class Visualiser:
         self.ax.set_xticks([pos + barWidth * (len(categories) - 1) / 2 for pos in x])
         self.ax.set_xticklabels(self.months)
         self.ax.legend(loc='upper left', bbox_to_anchor=(1, 0.5))
+        self.fig.canvas.manager.set_window_title("Expenses")
 
         self.fig.canvas.mpl_connect('pick_event', lambda event: self.onPick(event, onPick))
         self.fig.canvas.mpl_connect('close_event', self.onClose)
@@ -90,7 +92,7 @@ class Visualiser:
         # Adjust window size and position
         mng = plt.get_current_fig_manager()
         if hasattr(mng, 'window') and hasattr(mng.window, 'wm_geometry'):
-            window_size = f"{int(fig_width * 80)}x{int(fig_height * 80)}+100+100"
+            window_size = f"{int(figWidth * 90)}x{int(figHeight * 90)}+150+150"
             mng.window.wm_geometry(window_size)
 
         plt.tight_layout()
@@ -103,14 +105,14 @@ class Visualiser:
         for category, barsGroup in self.bars.items():
             if bar in barsGroup:
                 index = barsGroup.index(bar)
-                selected_category = category
+                selectedCategory = category
                 break
 
         month = self.months[index]
-        details = self.purchaseDetails[(month, selected_category)]
+        details = self.purchaseDetails[(month, selectedCategory)]
 
         if onPick:
-            onPick(details, month, selected_category)
+            onPick(details, month, selectedCategory)
 
     def onClose(self, event=None):
         # Handle close event to clean up created files

@@ -160,10 +160,16 @@ class Data:
                 data = self.appendDataCategories(gasStations, "Gas", description, data, descriptionInLatin)
                 self.gas.append(data)    
             
+
             else:
-                data.append("Other")
-                data.append("Other")
-                data.append(descriptionInLatin)
+                if float(data[0]) > 0:
+                    data.append("Transfer")
+                    data.append("Income")
+                    data.append(descriptionInLatin)
+                else:
+                    data.append("Other")
+                    data.append("Other")
+                    data.append(descriptionInLatin)
                 self.others.append(data)
                 
 

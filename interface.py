@@ -4,6 +4,7 @@ from dropdown import DropdownMenu
 from helper import Helper
 from tkinter import ttk, Toplevel
 import customtkinter as tk
+from datetime import datetime
 import os
 
 class Interface:
@@ -13,7 +14,7 @@ class Interface:
         self.root = root
         self.root.title("Finance Tracker")
         self.root.geometry("320x220")
-        self.root.protocol("WM_DELETE_WINDOW", self.on_close)
+        self.root.protocol("WM_DELETE_WINDOW", self.onClose)
 
         self.helper = Helper()
         self.selectedMonths = []
@@ -68,80 +69,85 @@ class Interface:
         self.analyzeFrame.grid(row=1, column=0, columnspan=2, sticky="nsew")
 
 
-    def display_data_in_treeview(self, details, month, category):
+    def displayDataInTreeview(self, details, month, category):
         window = Toplevel(self.root)
         window.title(f"Purchases for {category} in {month}")
         window.geometry("800x400")
 
         style = ttk.Style()
-        style.configure("Treeview", rowheight=30)
 
-        # Define the Treeview with columns
+        # Configure the Treeview for dark mode
+        style.configure("Treeview",
+                        background="#2E2E2E",  # Dark background for rows
+                        foreground="white",    # Light text for rows
+                        rowheight=30,
+                        fieldbackground="#2E2E2E")  # Dark background for field area
+        style.map("Treeview", background=[('selected', '#4D4D4D')],  # Darker shade when selected
+                foreground=[('selected', 'white')])
+
+        # Configure the Treeview headers for dark mode
+        style.configure("Treeview.Heading",
+                        background="#333333",  # Dark background for headers
+                        foreground="white",    # Light text for headers
+                        font=('Arial', 12, 'bold'))
+
         tree = ttk.Treeview(window, columns=('Price', 'Date', 'Place', 'Category'), show='headings')
         tree.heading('Price', text='Price')
         tree.heading('Date', text='Date')
         tree.heading('Place', text='Place')
         tree.heading('Category', text='Category')
 
-        # Set font size for all columns using tags
         tree.tag_configure('big', font=('Arial', 16))
 
-        # Insert each row into the Treeview and apply the 'big' tag to the rows
-        for detail in details:
-            price_with_currency = f"{detail[0]} BGN"
-            tree.insert('', 'end', values=(price_with_currency, detail[1], detail[2], detail[3]), tags=('big',))
+        # Sort the details by the date field
+        sorted_details = sorted(details, key=lambda x: datetime.strptime(x[1], '%d.%m.%Y'))  # Assuming 'YYYY-MM-DD' format
 
-        # Add scrollbars
-        horizontal_scrollbar = ttk.Scrollbar(window, orient="horizontal", command=tree.xview)
-        tree.configure(xscroll=horizontal_scrollbar.set)
-        horizontal_scrollbar.pack(side='bottom', fill='x')
+        for detail in sorted_details:
+            priceWithCurrency = f"{detail[0]} BGN"
+            tree.insert('', 'end', values=(priceWithCurrency, detail[1], detail[2], detail[3]), tags=('big',))
 
-        vertical_scrollbar = ttk.Scrollbar(window, orient="vertical", command=tree.yview)
-        tree.configure(yscroll=vertical_scrollbar.set)
-        vertical_scrollbar.pack(side='right', fill='y')
+        horizontalScrollbar = ttk.Scrollbar(window, orient="horizontal", command=tree.xview)
+        tree.configure(xscroll=horizontalScrollbar.set)
+        horizontalScrollbar.pack(side='bottom', fill='x')
+
+        verticalScrollbar = ttk.Scrollbar(window, orient="vertical", command=tree.yview)
+        tree.configure(yscroll=verticalScrollbar.set)
+        verticalScrollbar.pack(side='right', fill='y')
 
         tree.pack(expand=True, fill='both', side='top')
 
-        # Bind double-click and Enter key events to display the description
-        tree.bind("<Double-1>", lambda event: on_row_select(event, tree, details))
-        tree.bind("<Return>", lambda event: on_row_select(event, tree, details))
+        tree.bind("<Double-1>", lambda event: onRowSelect(event, tree, sorted_details))
+        tree.bind("<Return>", lambda event: onRowSelect(event, tree, sorted_details))
 
-        # Track the window
-        self.treeview_window = window
-        self.description_windows = []
+        self.treeviewWindow = window
+        self.descriptionWindows = []
 
-        def on_row_select(event, tree, details):
-            selected_item = tree.selection()[0]
-            index = tree.index(selected_item)
-            description = details[index][4]  # Use the correct index for the description
+        def onRowSelect(event, tree, details):
+            selectedItem = tree.selection()[0]
+            index = tree.index(selectedItem)
+            description = details[index][4]
 
-            # Open the description window
-            desc_window = Toplevel(self.root)
-            desc_window.title("Description")
-            desc_window.geometry("550x250")
-            desc_label = tk.CTkLabel(
-                desc_window,
+            descWindow = Toplevel(self.root)
+            descWindow.title("Description")
+            descWindow.geometry("550x250")
+            descLabel = tk.Label(
+                descWindow,
                 text=description,
                 wraplength=380,
                 justify='left',
-                fg_color="black",  # Ensure black text
+                bg="#2E2E2E",
+                fg='white'
             )
-            desc_label.pack(padx=10, pady=10, expand=True, fill='both')
+            descLabel.pack(padx=10, pady=10, expand=True, fill='both')
 
-            # Track the description window
-            self.description_windows.append(desc_window)
+            self.descriptionWindows.append(descWindow)
 
-        # Ensure all description windows are closed when the main treeview window is closed
-        self.treeview_window.protocol("WM_DELETE_WINDOW", lambda: self.close_all_description_windows())
-
-
-        # Close all description windows when the main window is closed
-        def on_close():
-            for desc_window in self.description_windows:
-                desc_window.destroy()
+        def onClose():
+            for descWindow in self.descriptionWindows:
+                descWindow.destroy()
             window.destroy()
 
-        window.protocol("WM_DELETE_WINDOW", on_close)
+        window.protocol("WM_DELETE_WINDOW", onClose)
 
 
 
@@ -160,11 +166,10 @@ class Interface:
         self.selectedCategories = self.categoryDropdown.selectedValues
 
         if self.selectedFile:
-            print(f"Analyzing for months: {self.selectedMonths}, categories: {self.selectedCategories}")
             purchases = self.getPurchases()
 
             self.visualiser = Visualiser(self.data)
-            self.visualiser.plotFinances(purchases, onPick=self.display_data_in_treeview)
+            self.visualiser.plotFinances(purchases, onPick=self.displayDataInTreeview)
             
         else:
             print("SELECT FILE")
@@ -213,7 +218,7 @@ class Interface:
         if files:
             self.fileDropdown.set(files[0])
 
-    def on_close(self):
+    def onClose(self):
         # Ensure matplotlib window closes first
         if hasattr(self, 'visualiser'):
             self.visualiser.onClose()  # Close matplotlib window before Tkinter quits

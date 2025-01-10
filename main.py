@@ -9,8 +9,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
-# TODO: Make chart close when root closes
-# TODO: Make the table prettier
-# TODO Change everything to CamelCase
