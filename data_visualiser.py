@@ -96,40 +96,7 @@ class Visualiser:
         plt.tight_layout()
         plt.show()
 
-    # def onPick(self, event):
-    #     # Handle pick event when a bar is clicked
-    #     bar = event.artist
-    #     xValue = event.mouseevent.xdata
-        
-    #     # Find the correct bar group and corresponding month index
-    #     for category, barsGroup in self.bars.items():
-    #         if bar in barsGroup:
-    #             index = barsGroup.index(bar)
-    #             selected_category = category
-    #             break
-                
-    #     month = self.months[index]
-        
-    #     # Retrieve and display purchase details
-    #     details = self.purchaseDetails[(month, selected_category)]
-    #     print(f"Purchases for {selected_category} in {month}:")
-    #     for detail in details:
-    #         print(detail)
-        
-    #     # Ensure the directory exists
-    #     directory = "Category Statements"
-    #     if not os.path.exists(directory):
-    #         os.makedirs(directory)
 
-    #     # Create and write to the CSV file
-    #     filename = os.path.join(directory, f"purchases_{selected_category}_{month}.csv".replace(' ', '_'))
-    #     with open(filename, mode='w', newline='') as file:
-    #         writer = csv.writer(file)
-    #         writer.writerow(["Price", "Date", "Place", "Category", "Description"])
-    #         writer.writerows(details)
-        
-    #     self.createdFiles.append(filename)
-    #     print(f"Details saved to {filename}")
     def onPick(self, event, onPick):
         bar = event.artist
 
@@ -147,6 +114,9 @@ class Visualiser:
 
     def onClose(self, event=None):
         # Handle close event to clean up created files
+        if self.fig:
+            plt.close(self.fig)
+
         for filename in self.createdFiles:
             try:
                 os.remove(filename)

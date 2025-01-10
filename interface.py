@@ -13,6 +13,7 @@ class Interface:
         self.root = root
         self.root.title("Finance Tracker")
         self.root.geometry("320x220")
+        self.root.protocol("WM_DELETE_WINDOW", self.on_close)
 
         self.helper = Helper()
         self.selectedMonths = []
@@ -22,6 +23,7 @@ class Interface:
         self.createWidgets()
         self.fillDropdown()
         self.loadGUI()
+
 
     '''UI Functions'''
     def createWidgets(self):
@@ -69,58 +71,79 @@ class Interface:
     def display_data_in_treeview(self, details, month, category):
         window = Toplevel(self.root)
         window.title(f"Purchases for {category} in {month}")
+        window.geometry("800x400")
 
-        # Define the treeview with column names
-        tree = ttk.Treeview(window, columns=('Price', 'Date', 'Place', 'Category', 'Description'), show='headings')
+        style = ttk.Style()
+        style.configure("Treeview", rowheight=30)
+
+        # Define the Treeview with columns
+        tree = ttk.Treeview(window, columns=('Price', 'Date', 'Place', 'Category'), show='headings')
         tree.heading('Price', text='Price')
         tree.heading('Date', text='Date')
         tree.heading('Place', text='Place')
         tree.heading('Category', text='Category')
-        tree.heading('Description', text='Description')
 
         # Set font size for all columns using tags
-        tree.tag_configure('big', font=('Arial', 16))  # Configure a tag with font size
-
-        # Function to wrap text manually into lines
-        def wrap_text(text, max_length=50):
-            words = text.split(' ')
-            lines = []
-            current_line = []
-
-            for word in words:
-                if sum(len(w) for w in current_line) + len(word) + len(current_line) > max_length:
-                    lines.append(' '.join(current_line))
-                    current_line = [word]
-                else:
-                    current_line.append(word)
-
-            lines.append(' '.join(current_line))
-            return lines
+        tree.tag_configure('big', font=('Arial', 16))
 
         # Insert each row into the Treeview and apply the 'big' tag to the rows
         for detail in details:
-            # Wrap the description text into multiple lines
-            description_lines = wrap_text(detail[4], max_length=50)
+            price_with_currency = f"{detail[0]} BGN"
+            tree.insert('', 'end', values=(price_with_currency, detail[1], detail[2], detail[3]), tags=('big',))
 
-            # Insert each line as a separate row with the same data for other columns
-            for line in description_lines:
-                tree.insert('', 'end', values=(detail[0], detail[1], detail[2], detail[3], line), tags=('big',))
-
-        # Pack the treeview and add horizontal scrolling
-        tree.pack(expand=True, fill='both', side='top')
-
-        # Add a horizontal scrollbar to the Treeview
+        # Add scrollbars
         horizontal_scrollbar = ttk.Scrollbar(window, orient="horizontal", command=tree.xview)
         tree.configure(xscroll=horizontal_scrollbar.set)
         horizontal_scrollbar.pack(side='bottom', fill='x')
 
-        # # Add a vertical scrollbar to the Treeview
-        # vertical_scrollbar = ttk.Scrollbar(window, orient="vertical", command=tree.yview)
-        # tree.configure(yscroll=vertical_scrollbar.set)
-        # vertical_scrollbar.pack(side='right', fill='y')
+        vertical_scrollbar = ttk.Scrollbar(window, orient="vertical", command=tree.yview)
+        tree.configure(yscroll=vertical_scrollbar.set)
+        vertical_scrollbar.pack(side='right', fill='y')
+
+        tree.pack(expand=True, fill='both', side='top')
+
+        # Bind double-click and Enter key events to display the description
+        tree.bind("<Double-1>", lambda event: on_row_select(event, tree, details))
+        tree.bind("<Return>", lambda event: on_row_select(event, tree, details))
+
+        # Track the window
+        self.treeview_window = window
+        self.description_windows = []
+
+        def on_row_select(event, tree, details):
+            selected_item = tree.selection()[0]
+            index = tree.index(selected_item)
+            description = details[index][4]  # Use the correct index for the description
+
+            # Open the description window
+            desc_window = Toplevel(self.root)
+            desc_window.title("Description")
+            desc_window.geometry("550x250")
+            desc_label = tk.CTkLabel(
+                desc_window,
+                text=description,
+                wraplength=380,
+                justify='left',
+                fg_color="black",  # Ensure black text
+            )
+            desc_label.pack(padx=10, pady=10, expand=True, fill='both')
+
+            # Track the description window
+            self.description_windows.append(desc_window)
+
+        # Ensure all description windows are closed when the main treeview window is closed
+        self.treeview_window.protocol("WM_DELETE_WINDOW", lambda: self.close_all_description_windows())
 
 
-  
+        # Close all description windows when the main window is closed
+        def on_close():
+            for desc_window in self.description_windows:
+                desc_window.destroy()
+            window.destroy()
+
+        window.protocol("WM_DELETE_WINDOW", on_close)
+
+
 
 
     '''Button and Data Functions'''
@@ -142,6 +165,7 @@ class Interface:
 
             self.visualiser = Visualiser(self.data)
             self.visualiser.plotFinances(purchases, onPick=self.display_data_in_treeview)
+            
         else:
             print("SELECT FILE")
 
@@ -188,3 +212,10 @@ class Interface:
 
         if files:
             self.fileDropdown.set(files[0])
+
+    def on_close(self):
+        # Ensure matplotlib window closes first
+        if hasattr(self, 'visualiser'):
+            self.visualiser.onClose()  # Close matplotlib window before Tkinter quits
+        self.root.quit()  # Quit the Tkinter mainloop
+        self.root.destroy()  # Destroy the Tkinter window

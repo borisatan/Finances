@@ -11,5 +11,6 @@ if __name__ == "__main__":
     main()
 
 
-# TODO: Fix horizontal scrolling / description wrapping?
-# TODO: Add space between each row to make them more readable
+# TODO: Make chart close when root closes
+# TODO: Make the table prettier
+# TODO Change everything to CamelCase

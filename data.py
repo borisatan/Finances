@@ -161,9 +161,9 @@ class Data:
                 self.gas.append(data)    
             
             else:
+                data.append("Other")
+                data.append("Other")
                 data.append(descriptionInLatin)
-                data.append("Other")
-                data.append("Other")
                 self.others.append(data)
                 
 
