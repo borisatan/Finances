@@ -2,7 +2,7 @@ from data import Data
 from data_visualiser import Visualiser
 from dropdown import DropdownMenu
 from helper import Helper
-from tkinter import ttk, Toplevel
+from tkinter import ttk, Toplevel, Label
 import customtkinter as tk
 from datetime import datetime
 import os
@@ -129,12 +129,13 @@ class Interface:
 
             descWindow = Toplevel(self.root)
             descWindow.title("Description")
-            descWindow.geometry("550x250")
-            descLabel = tk.Label(
+            descWindow.geometry("600x250")
+            descLabel = Label(
                 descWindow,
                 text=description,
-                wraplength=380,
+                wraplength=550,
                 justify='left',
+                font=("Arial", 15),
                 bg="#2E2E2E",
                 fg='white'
             )
